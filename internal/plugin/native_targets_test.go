@@ -190,3 +190,53 @@ func TestParseCommandInventoryAntigravityCLI(t *testing.T) {
 		})
 	}
 }
+
+func TestAntigravityCLIUpdateRespectsEnablement(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	source := fixture(t)
+	s := &Service{ConfigPath: filepath.Join(home, "config.yaml"), StateDir: filepath.Join(home, "state")}
+	installed, enabled := false, true
+	var installs int
+	s.Run = func(_ context.Context, _ string, _ []string, _ string, args ...string) ([]byte, error) {
+		command := strings.Join(args, " ")
+		if command == "--version" {
+			return []byte("1.0.0"), nil
+		}
+		if strings.Contains(command, "--help") {
+			return []byte("Usage: agy plugin install uninstall list"), nil
+		}
+		if command == "plugin list --json" {
+			if !installed {
+				return []byte(`[]`), nil
+			}
+			return json.Marshal([]map[string]any{{"name": "demo", "enabled": enabled, "version": "1.0.0"}})
+		}
+		if len(args) >= 2 && args[1] == "install" {
+			installed = true
+			installs++
+			return nil, nil
+		}
+		return nil, fmt.Errorf("unexpected command: %s", command)
+	}
+	applyPluginRequest(t, s, Request{Action: "add", Source: source, Targets: []string{"antigravity-cli"}})
+	writeFile(t, source, "skills/demo/SKILL.md", "updated v2")
+
+	// When disabled in Antigravity CLI, update must skip to preserve native enablement.
+	enabled = false
+	plan, err := s.Preview(context.Background(), Request{Action: "update", Name: "demo"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(plan.Changes) != 1 || plan.Changes[0].Action != "skip" || plan.Changes[0].MessageKey != "plugins.skip.keepEnablement" {
+		t.Fatalf("expected keepEnablement skip for disabled agy plugin, got %+v", plan.Changes)
+	}
+
+	// When enabled in Antigravity CLI, update must proceed and reinstall the updated snapshot.
+	enabled = true
+	before := installs
+	applyPluginRequest(t, s, Request{Action: "update", Name: "demo"})
+	if installs != before+1 {
+		t.Fatalf("expected agy plugin install on enabled update, installs=%d (before=%d)", installs, before)
+	}
+}
