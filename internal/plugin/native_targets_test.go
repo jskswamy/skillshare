@@ -222,18 +222,26 @@ func TestAntigravityCLIUpdateRespectsEnablement(t *testing.T) {
 	applyPluginRequest(t, s, Request{Action: "add", Source: source, Targets: []string{"antigravity-cli"}})
 	writeFile(t, source, "skills/demo/SKILL.md", "updated v2")
 
-	// When disabled in Antigravity CLI, update must skip to preserve native enablement.
-	enabled = false
-	plan, err := s.Preview(context.Background(), Request{Action: "update", Name: "demo"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(plan.Changes) != 1 || plan.Changes[0].Action != "skip" || plan.Changes[0].MessageKey != "plugins.skip.keepEnablement" {
-		t.Fatalf("expected keepEnablement skip for disabled agy plugin, got %+v", plan.Changes)
+	// When disabled or absent in Antigravity CLI, update must skip to preserve native enablement.
+	for _, tc := range []struct {
+		installed bool
+		enabled   bool
+	}{
+		{installed: true, enabled: false},
+		{installed: false, enabled: true},
+	} {
+		installed, enabled = tc.installed, tc.enabled
+		plan, err := s.Preview(context.Background(), Request{Action: "update", Name: "demo"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(plan.Changes) != 1 || plan.Changes[0].Action != "skip" || plan.Changes[0].MessageKey != "plugins.skip.keepEnablement" {
+			t.Fatalf("expected keepEnablement skip for agy plugin (installed=%v, enabled=%v), got %+v", tc.installed, tc.enabled, plan.Changes)
+		}
 	}
 
-	// When enabled in Antigravity CLI, update must proceed and reinstall the updated snapshot.
-	enabled = true
+	// When installed and enabled in Antigravity CLI, update must proceed and reinstall the updated snapshot.
+	installed, enabled = true, true
 	before := installs
 	applyPluginRequest(t, s, Request{Action: "update", Name: "demo"})
 	if installs != before+1 {

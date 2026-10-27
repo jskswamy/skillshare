@@ -209,10 +209,15 @@ func (s *Service) Preview(ctx context.Context, r Request) (*Plan, error) {
 				label = "Antigravity CLI"
 				msg = "Update in Antigravity CLI to preserve native enablement."
 			}
+			enabled := false
 			for _, item := range h.Installed {
-				if item.ID == c.ID && (!item.EnabledKnown || !item.Enabled) {
-					skip("plugins.skip.keepEnablement", msg, map[string]string{"agent": label})
+				if item.ID == c.ID && item.EnabledKnown && item.Enabled {
+					enabled = true
+					break
 				}
+			}
+			if !enabled {
+				skip("plugins.skip.keepEnablement", msg, map[string]string{"agent": label})
 			}
 		}
 		if c.Action == "update" && agent == "codex" && c.Binding.Source == "" {
