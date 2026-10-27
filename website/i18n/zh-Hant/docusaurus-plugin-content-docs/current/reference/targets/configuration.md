@@ -189,7 +189,7 @@ skillshare sync
 使用 `.git` 檔案的 Git worktree 與 submodule 也是 checkout：`update --all` 會略過它們，dashboard 會拒絕更新它們。
 
 :::warning Update 會改動真實的 checkout
-`skillshare update _dev-skills` 會在 `~/code/dev-skills` 內執行 git，而不是在另一個受管理的 clone 中。`skillshare update _dev-skills --force` 會重設該真實 checkout 並丟棄其本機變更。基於同樣的理由，`skillshare update --all`（即使加上 `--force`） 會略過已跟進的連結並顯示警告；請以名稱逐一更新。`skillshare install <url> --track --update` 會拒絕拉取有未提交變更的連結 checkout，因為阻擋性的 audit 發現可能透過 `git reset --hard` 回滾它；請先 commit 或 stash。dashboard 永遠不會更新連結指向的 Git checkout，包含強制重試；這些 checkout 由你管理。
+`skillshare update _dev-skills` 會準備並稽核隔離的候選副本，再將核准的 revision 發布至 `~/code/dev-skills`。拒絕時實際 checkout 保持不變。`skillshare update _dev-skills --force` 只會在發布候選副本時丟棄其本機變更。`skillshare update --all`（即使加上 `--force`）會略過已跟進的連結並顯示警告；請以名稱逐一更新。`skillshare install <url> --track --update` 仍會拒絕有未提交變更的連結 checkout；請先 commit 或 stash。dashboard 永遠不會更新連結指向的 Git checkout，包含強制重試；這些 checkout 由你管理。
 :::
 
 #### 安全防護 {#safety-guards}
@@ -669,7 +669,7 @@ projects:
 - **輸出中的名稱。** `sync`、`status`、`diff`、`doctor` 與 `backup` 會以 `<name>@<target>` 的形式顯示一個 project 的 targets，例如 `shop-web@claude`。`name` 不能包含 `@`、`/` 或 `\`，且兩個 project 不能共用同一個名稱。
 - **Agents** 只會寫入擁有 project agents 目錄的工具。只設定 `agents` 而不設定 `skills` 的 project，只會同步 agents。
 - **找不到的資料夾會被跳過。** `sync` 會印出 `project <folder>: folder not found, skipped`，且不會重新建立你已經搬移或刪除的 project。
-- **`target` 與 `collect` 不會動到 projects。** `skillshare target` 只會列出並編輯 `targets` 區塊，`collect` 也不會把 project 自己的 skills 拉回 source。請在 `config.yaml` 中編輯 `projects`，或在 dashboard 的 **Projects** 頁面編輯。
+- **`target` 與 `collect` 不會動到 projects。** `skillshare target` 只會列出並編輯 `targets` 區塊，`collect` 也不會把 project 自己的 skills 拉回 source。使用 [`skillshare project`](/docs/reference/commands/project) 新增、編輯、同步或移除專案註冊，也可以使用 dashboard 的 **Projects** 頁面。
 - 帶有 `targets` frontmatter 欄位的 skill 會依工具比對，因此 `targets: [claude]` 會涵蓋 `shop-web@claude`。
 
 同樣這些資料夾的 MCP servers 列在 [`mcp.projects`](/docs/reference/commands/mcp#manage-several-projects-from-the-global-config) 底下，以相同的資料夾為 key。逐步設定教學請參見[多個 Projects，一份 Config](/docs/how-to/recipes/many-projects-one-config)。

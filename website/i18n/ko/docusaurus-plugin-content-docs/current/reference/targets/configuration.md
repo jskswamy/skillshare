@@ -189,7 +189,7 @@ skillshare sync
 `.git` 파일이 있는 Git worktree와 submodule도 체크아웃입니다. `update --all`은 이들을 건너뛰며 대시보드는 업데이트를 거부합니다.
 
 :::warning update는 실제 checkout을 변경합니다
-`skillshare update _dev-skills`는 별도의 관리형 clone이 아니라 `~/code/dev-skills` 안에서 git을 실행합니다. `skillshare update _dev-skills --force`는 그 실제 checkout을 reset하고 로컬 변경 사항을 버립니다. 같은 이유로 `skillshare update --all`은 `--force`를 지정해도 따라간 링크를 경고와 함께 건너뛰므로, 이름을 지정해 update하세요. `skillshare install <url> --track --update`는 커밋하지 않은 변경이 있는 연결된 체크아웃의 pull을 거부합니다. 차단 수준의 audit 결과로 `git reset --hard`가 실행될 수 있으므로 먼저 커밋하거나 stash하세요. 대시보드는 강제 재시도를 포함해 연결된 Git 체크아웃을 업데이트하지 않습니다. 사용자가 직접 관리합니다.
+`skillshare update _dev-skills`는 격리된 후보를 준비하고 audit한 뒤 승인된 revision을 `~/code/dev-skills`에 게시합니다. 거부하면 실제 checkout은 변경되지 않습니다. `skillshare update _dev-skills --force`는 후보를 게시할 때만 로컬 변경 사항을 버립니다. `skillshare update --all`은 `--force`를 지정해도 따라간 링크를 경고와 함께 건너뛰므로, 이름을 지정해 update하세요. `skillshare install <url> --track --update`는 여전히 커밋하지 않은 변경이 있는 연결된 체크아웃을 거부합니다. 먼저 커밋하거나 stash하세요. 대시보드는 강제 재시도를 포함해 연결된 Git 체크아웃을 업데이트하지 않습니다. 사용자가 직접 관리합니다.
 :::
 
 #### 안전 장치 {#safety-guards}
@@ -674,7 +674,7 @@ projects:
 - **출력에 표시되는 이름.** `sync`, `status`, `diff`, `doctor`, `backup`은 프로젝트의 target을 `<name>@<target>` 형태로 표시합니다. 예: `shop-web@claude`. `name`에는 `@`, `/`, `\`를 포함할 수 없으며, 두 프로젝트가 같은 이름을 공유할 수 없습니다.
 - **Agent**는 프로젝트 agent 폴더가 있는 tool에만 기록됩니다. `agents`만 있고 `skills`가 없는 프로젝트는 agent만 동기화합니다.
 - **폴더가 없으면 건너뜁니다.** `sync`는 `project <folder>: folder not found, skipped`를 출력하며, 이동하거나 삭제한 프로젝트를 다시 만들지 않습니다.
-- **`target`과 `collect`는 프로젝트를 건드리지 않습니다.** `skillshare target`은 `targets` 섹션만 나열하고 편집하며, `collect`는 프로젝트 자체 skill을 source로 가져오지 않습니다. `config.yaml`에서 `projects`를 직접 편집하거나 대시보드의 **프로젝트** 페이지를 사용하세요.
+- **`target`과 `collect`는 프로젝트를 건드리지 않습니다.** `skillshare target`은 `targets` 섹션만 나열하고 편집하며, `collect`는 프로젝트 자체 skill을 source로 가져오지 않습니다. [`skillshare project`](/docs/reference/commands/project)로 프로젝트 등록을 추가·편집·동기화·제거하거나 대시보드의 **프로젝트** 페이지를 사용하세요.
 - `targets` frontmatter 필드가 있는 skill은 tool을 기준으로 매칭되므로, `targets: [claude]`는 `shop-web@claude`에 도달합니다.
 
 같은 폴더의 MCP 서버는 같은 폴더를 키로 하는 [`mcp.projects`](/docs/reference/commands/mcp#manage-several-projects-from-the-global-config) 아래에 나열됩니다. 단계별 설정은 [Many Projects, One Config](/docs/how-to/recipes/many-projects-one-config)를 참고하세요.

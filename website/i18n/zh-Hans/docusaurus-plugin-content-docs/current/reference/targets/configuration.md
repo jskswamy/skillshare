@@ -189,7 +189,7 @@ skillshare sync
 使用 `.git` 文件的 Git worktree 和 submodule 也是 checkout：`update --all` 会跳过它们，dashboard 会拒绝更新它们。
 
 :::warning update 会修改真实的 checkout
-`skillshare update _dev-skills` 会在 `~/code/dev-skills` 内部运行 git，而不是在一个单独管理的克隆中。`skillshare update _dev-skills --force` 会重置这个真实的 checkout 并丢弃其本地修改。正因如此，`skillshare update --all`（即使加上 `--force`） 会跳过被跟随的链接并给出警告；请按名称单独更新它们。`skillshare install <url> --track --update` 会拒绝拉取存在未提交修改的链接 checkout，因为阻断级别的 audit 结果可能通过 `git reset --hard` 回滚它；请先 commit 或 stash。dashboard 永远不会更新链接指向的 Git checkout，包括强制重试；这些 checkout 由你管理。
+`skillshare update _dev-skills` 会准备并审计隔离的候选副本，再将获准的 revision 发布到 `~/code/dev-skills`。拒绝时实际 checkout 保持不变。`skillshare update _dev-skills --force` 只会在发布候选副本时丢弃其本地修改。`skillshare update --all`（即使加上 `--force`）会跳过被跟随的链接并给出警告；请按名称单独更新它们。`skillshare install <url> --track --update` 仍会拒绝存在未提交修改的链接 checkout；请先 commit 或 stash。dashboard 永远不会更新链接指向的 Git checkout，包括强制重试；这些 checkout 由你管理。
 :::
 
 #### 安全防护 {#safety-guards}
@@ -669,7 +669,7 @@ projects:
 - **输出中的名称。** `sync`、`status`、`diff`、`doctor` 和 `backup` 会把一个项目的 targets 显示为 `<name>@<target>`，例如 `shop-web@claude`。`name` 不能包含 `@`、`/` 或 `\`，且两个项目不能共用同一个名称。
 - **Agent** 只会写入拥有 project Agent 目录的工具。只设置了 `agents`、没有设置 `skills` 的项目只会 sync Agent。
 - **缺失的文件夹会被跳过。** `sync` 会打印 `project <folder>: folder not found, skipped`，且不会重新创建你已经移动或删除的项目。
-- **`target` 和 `collect` 不会改动 projects。** `skillshare target` 只列出并编辑 `targets` 部分，`collect` 也不会把项目自己的 Skill 拉回 Source。请在 `config.yaml` 中编辑 `projects`，或在仪表盘的 **Projects** 页面编辑。
+- **`target` 和 `collect` 不会改动 projects。** `skillshare target` 只列出并编辑 `targets` 部分，`collect` 也不会把项目自己的 Skill 拉回 Source。使用 [`skillshare project`](/docs/reference/commands/project) 添加、编辑、同步或移除项目注册，也可以使用仪表盘的 **Projects** 页面。
 - 带有 `targets` frontmatter 字段的 Skill 会与工具进行匹配，因此 `targets: [claude]` 能到达 `shop-web@claude`。
 
 同样，这些文件夹下的 MCP server 列在 [`mcp.projects`](/docs/reference/commands/mcp#manage-several-projects-from-the-global-config) 中，以相同的文件夹作为 key。完整的分步设置参见 [Many Projects, One Config](/docs/how-to/recipes/many-projects-one-config)。
